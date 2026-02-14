@@ -1,60 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
 <meta charset="UTF-8">
 <title>Car Configurator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 body{
     background:#111;color:#fff;
     min-height:100vh;
     display:flex;justify-content:center;align-items:center;
 }
-.app{width:1050px;max-width:95%;display:flex;gap:30px;}
+.app{width:1100px;max-width:95%;display:flex;gap:30px}
 
-/* VIEW */
 .viewer{
     flex:1;background:#1c1c1c;border-radius:20px;
     display:flex;justify-content:center;align-items:center;
     position:relative;overflow:hidden;
 }
 .car{
-    width:420px;cursor:grab;transition:.3s;
-}
-.spoiler{
-    position:absolute;top:120px;width:160px;height:20px;
-    background:black;border-radius:10px;display:none;
+    width:420px;
+    cursor:grab;
+    transition:.3s;
 }
 .wheel{
-    position:absolute;bottom:80px;width:45px;height:45px;
-    background:silver;border-radius:50%;
+    fill:#aaa;
 }
-.wheel.left{left:290px;}
-.wheel.right{left:390px;}
+.spoiler{
+    fill:#000;
+    display:none;
+}
 
-/* CONTROLS */
 .controls{
     width:340px;background:#1a1a1a;
     border-radius:20px;padding:25px;
 }
-.controls h2{margin-bottom:15px;}
-.section{margin-bottom:20px;}
-.colors{display:flex;gap:10px;}
+.section{margin-bottom:18px}
+.colors{display:flex;gap:10px}
 .color{
-    width:25px;height:25px;border-radius:50%;
-    cursor:pointer;border:2px solid white;
+    width:24px;height:24px;border-radius:50%;
+    border:2px solid #fff;cursor:pointer;
 }
 button{
     width:100%;padding:10px;margin-top:8px;
     background:#ff4d00;border:none;border-radius:10px;
-    color:white;font-size:15px;cursor:pointer;
+    color:#fff;font-size:15px;cursor:pointer;
 }
 .price{
-    font-size:22px;font-weight:bold;
+    margin-top:15px;
     background:#000;padding:12px;border-radius:10px;
-    text-align:center;
+    text-align:center;font-size:22px;font-weight:bold;
 }
 </style>
 </head>
@@ -64,10 +60,23 @@ button{
 
 <!-- VIEW -->
 <div class="viewer" id="viewer">
-    <img id="car" class="car" src="A_2D_digital_screenshot_of_a_car_configurator_web_.png">
-    <div class="spoiler" id="spoiler"></div>
-    <div class="wheel left" id="wheelL"></div>
-    <div class="wheel right" id="wheelR"></div>
+
+<svg id="car" class="car" viewBox="0 0 600 250">
+    <!-- BODY -->
+    <rect id="body" x="80" y="90" width="420" height="80" rx="40" fill="red"/>
+    <rect x="180" y="50" width="240" height="70" rx="35" fill="#222"/>
+
+    <!-- WINDOWS -->
+    <rect id="window" x="210" y="60" width="180" height="50" rx="20" fill="#555"/>
+
+    <!-- WHEELS -->
+    <circle id="wheelL" class="wheel" cx="180" cy="180" r="28"/>
+    <circle id="wheelR" class="wheel" cx="420" cy="180" r="28"/>
+
+    <!-- SPOILER -->
+    <rect id="spoiler" class="spoiler" x="450" y="80" width="80" height="10" rx="5"/>
+</svg>
+
 </div>
 
 <!-- CONTROLS -->
@@ -77,28 +86,27 @@ button{
     <div class="section">
         <b>🎨 Rang</b>
         <div class="colors">
-            <div class="color" style="background:red" onclick="setColor('hue-rotate(0deg)',0)"></div>
-            <div class="color" style="background:blue" onclick="setColor('hue-rotate(200deg)',500)"></div>
-            <div class="color" style="background:black" onclick="setColor('grayscale(100%)',700)"></div>
+            <div class="color" style="background:red" onclick="setColor('red',0)"></div>
+            <div class="color" style="background:blue" onclick="setColor('blue',500)"></div>
+            <div class="color" style="background:black" onclick="setColor('#222',800)"></div>
         </div>
     </div>
 
     <div class="section">
         <b>🛞 Disk</b>
-        <button onclick="setWheels('silver',0)">Oddiy disk</button>
-        <button onclick="setWheels('black',1200)">Sport disk</button>
+        <button onclick="setWheel('#aaa',0)">Oddiy</button>
+        <button onclick="setWheel('#000',1200)">Sport</button>
     </div>
 
     <div class="section">
         <b>🪟 Oyna</b>
-        <button onclick="setWindows(0)">Oddiy</button>
-        <button onclick="setWindows(800)">Qora tint</button>
+        <button onclick="setWindow('#555',0)">Oddiy</button>
+        <button onclick="setWindow('#111',700)">Qora tint</button>
     </div>
 
     <div class="section">
         <b>🧩 Qo‘shimcha</b>
         <button onclick="toggleSpoiler()">Spoiler (+1500)</button>
-        <button onclick="toggleNeon()">Neon (+600)</button>
     </div>
 
     <div class="price" id="price">$80,000</div>
@@ -107,74 +115,42 @@ button{
 </div>
 
 <script>
-const car=document.getElementById("car");
-const viewer=document.getElementById("viewer");
-const spoiler=document.getElementById("spoiler");
-const wheelL=document.getElementById("wheelL");
-const wheelR=document.getElementById("wheelR");
-const priceBox=document.getElementById("price");
-
-let basePrice=80000;
-let total=basePrice;
+let base=80000,total=base;
 let rotate=0,isDown=false;
 
-function updatePrice(){
-    priceBox.innerText="$"+total.toLocaleString();
-}
+const body=document.getElementById("body");
+const wL=document.getElementById("wheelL");
+const wR=document.getElementById("wheelR");
+const win=document.getElementById("window");
+const spoiler=document.getElementById("spoiler");
+const viewer=document.getElementById("viewer");
+const car=document.getElementById("car");
+const price=document.getElementById("price");
 
-/* ROTATE */
-viewer.addEventListener("mousedown",()=>isDown=true);
-window.addEventListener("mouseup",()=>isDown=false);
-viewer.addEventListener("mousemove",(e)=>{
+function update(){price.innerText="$"+total.toLocaleString()}
+
+viewer.onmousedown=()=>isDown=true;
+window.onmouseup=()=>isDown=false;
+viewer.onmousemove=e=>{
     if(!isDown)return;
     rotate+=e.movementX;
-    car.style.transform=rotateY(${rotate}deg);
-});
-
-/* COLOR */
-function setColor(filter,price){
-    car.style.filter=filter;
-    total=basePrice+price;
-    updatePrice();
+    car.style.transform=`rotateY(${rotate}deg)`;
 }
 
-/* WHEELS */
-function setWheels(color,price){
-    wheelL.style.background=color;
-    wheelR.style.background=color;
-    total=basePrice+price;
-    updatePrice();
-}
+function setColor(c,p){body.setAttribute("fill",c);total=base+p;update()}
+function setWheel(c,p){wL.setAttribute("fill",c);wR.setAttribute("fill",c);total=base+p;update()}
+function setWindow(c,p){win.setAttribute("fill",c);total=base+p;update()}
 
-/* WINDOWS */
-function setWindows(price){
-    car.style.opacity=price?0.85:1;
-    total=basePrice+price;
-    updatePrice();
-}
 function toggleSpoiler(){
     if(spoiler.style.display==="block"){
-        spoiler.style.display="none";
-        total-=1500;
+        spoiler.style.display="none";total-=1500;
     }else{
-        spoiler.style.display="block";
-        total+=1500;
+        spoiler.style.display="block";total+=1500;
     }
-    updatePrice();
+    update();
 }
 
-function toggleNeon(){
-    if(viewer.style.boxShadow){
-        viewer.style.boxShadow="";
-        total-=600;
-    }else{
-        viewer.style.boxShadow="0 0 40px #ff4d00";
-        total+=600;
-    }
-    updatePrice();
-}
-
-updatePrice();
+update();
 </script>
 
 </body>
