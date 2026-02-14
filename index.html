@@ -1,79 +1,207 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <title>Porsche 911 Konfigurator</title>
-    <style>
-        body {
-            background: #111;
-            color: white;
-            font-family: Arial;
-            text-align: center;
-        }
+<meta charset="UTF-8">
+<title>Car Configurator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        img {
-            width: 400px;
-            transition: transform 0.5s, filter 0.5s;
-        }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{
+    background:#0f0f0f;color:#fff;
+    min-height:100vh;
+    display:flex;justify-content:center;align-items:center;
+}
+.app{
+    width:1100px;max-width:95%;
+    display:flex;gap:30px;
+}
 
-        .controls button {
-            margin: 5px;
-            padding: 10px 15px;
-            cursor: pointer;
-        }
-    </style>
+/* VIEW */
+.viewer{
+    flex:1;
+    background:#1c1c1c;
+    border-radius:20px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+    overflow:hidden;
+}
+
+/* CAR (CSS ONLY) */
+.car{
+    width:420px;height:160px;
+    position:relative;
+    cursor:grab;
+    transition:.3s;
+}
+.body{
+    width:100%;height:80px;
+    background:red;
+    border-radius:40px;
+    position:absolute;
+    bottom:20px;
+}
+.roof{
+    width:220px;height:60px;
+    background:#222;
+    border-radius:30px;
+    position:absolute;
+    top:0;left:100px;
+}
+.window{
+    width:160px;height:40px;
+    background:#555;
+    border-radius:20px;
+    position:absolute;
+    top:10px;left:130px;
+}
+.wheel{
+    width:45px;height:45px;
+    background:#aaa;
+    border-radius:50%;
+    position:absolute;
+    bottom:0;
+}
+.wheel.left{left:80px}
+.wheel.right{right:80px}
+.spoiler{
+    width:70px;height:10px;
+    background:black;
+    position:absolute;
+    right:-10px;top:40px;
+    border-radius:5px;
+    display:none;
+}
+
+/* CONTROLS */
+.controls{
+    width:340px;
+    background:#1a1a1a;
+    border-radius:20px;
+    padding:25px;
+}
+.section{margin-bottom:18px}
+.colors{display:flex;gap:10px}
+.color{
+    width:24px;height:24px;
+    border-radius:50%;
+    border:2px solid #fff;
+    cursor:pointer;
+}
+button{
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    background:#ff4d00;
+    border:none;
+    border-radius:10px;
+    color:#fff;
+    cursor:pointer;
+}
+.price{
+    margin-top:15px;
+    background:#000;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+}
+</style>
 </head>
 <body>
 
-    <h1>Porsche 911 Konfigurator</h1>
+<div class="app">
 
-    <!-- RASM -->
-    <img id="car" src="c:\Users\i7\Pictures\porsche.jpg" alt="Porsche 911">
+<!-- VIEW -->
+<div class="viewer" id="viewer">
+    <div class="car" id="car">
+        <div class="roof"></div>
+        <div class="window" id="window"></div>
+        <div class="body" id="body"></div>
+        <div class="wheel left" id="wL"></div>
+        <div class="wheel right" id="wR"></div>
+        <div class="spoiler" id="spoiler"></div>
+    </div>
+</div>
 
-    <div class="controls">
-        <h3>Rang</h3>
-        <button onclick="setColor('red')">Qizil</button>
-        <button onclick="setColor('blue')">Ko‘k</button>
-        <button onclick="setColor('white')">Oq</button>
+<!-- CONTROLS -->
+<div class="controls">
+    <h2>Car Configurator</h2>
 
-        <h3>Aylantirish</h3>
-        <button onclick="rotate()">Aylantir</button>
-
-        <h3>Oyna</h3>
-        <button onclick="glass()">Qora oyna</button>
+    <div class="section">
+        <b>🎨 Rang</b>
+        <div class="colors">
+            <div class="color" style="background:red" onclick="setColor('red',0)"></div>
+            <div class="color" style="background:blue" onclick="setColor('blue',500)"></div>
+            <div class="color" style="background:black" onclick="setColor('#222',800)"></div>
+        </div>
     </div>
 
-    <h2>Narx: <span id="price">120000</span> $</h2>
+    <div class="section">
+        <b>🛞 Disk</b>
+        <button onclick="setWheel('#aaa',0)">Oddiy</button>
+        <button onclick="setWheel('#000',1200)">Sport</button>
+    </div>
+
+    <div class="section">
+        <b>🪟 Oyna</b>
+        <button onclick="setWindow('#555',0)">Oddiy</button>
+        <button onclick="setWindow('#111',700)">Qora tint</button>
+    </div>
+
+    <div class="section">
+        <b>🧩 Qo‘shimcha</b>
+        <button onclick="toggleSpoiler()">Spoiler (+1500)</button>
+    </div>
+
+    <div class="price" id="price">$80,000</div>
+</div>
+
+</div>
 
 <script>
-    let price = 120000;
-    let angle = 0;
+let base=80000,total=base;
+let rotate=0,isDown=false;
 
-    function setColor(color) {
-        document.getElementById("car").style.filter =
-            `drop-shadow(0 0 30px ${color})`;
-        price += 2000;
-        updatePrice();
-    }
+const body=document.getElementById("body");
+const wL=document.getElementById("wL");
+const wR=document.getElementById("wR");
+const win=document.getElementById("window");
+const spoiler=document.getElementById("spoiler");
+const viewer=document.getElementById("viewer");
+const car=document.getElementById("car");
+const price=document.getElementById("price");
 
-    function rotate() {
-        angle += 20;
-        document.getElementById("car").style.transform =
-            `rotateY(${angle}deg)`;
-    }
+function update(){price.innerText="$"+total.toLocaleString()}
 
-    function glass() {
-        document.getElementById("car").style.filter += " brightness(0.7)";
-        price += 1500;
-        updatePrice();
-    }
+/* ROTATE */
+viewer.onmousedown=()=>isDown=true;
+window.onmouseup=()=>isDown=false;
+viewer.onmousemove=e=>{
+    if(!isDown)return;
+    rotate+=e.movementX;
+    car.style.transform=`rotateY(${rotate}deg)`;
+}
 
-    function updatePrice() {
-        document.getElementById("price").innerText = price;
+/* FUNCTIONS */
+function setColor(c,p){body.style.background=c;total=base+p;update()}
+function setWheel(c,p){wL.style.background=c;wR.style.background=c;total=base+p;update()}
+function setWindow(c,p){win.style.background=c;total=base+p;update()}
+
+function toggleSpoiler(){
+    if(spoiler.style.display==="block"){
+        spoiler.style.display="none";total-=1500;
+    }else{
+        spoiler.style.display="block";total+=1500;
     }
+    update();
+}
+
+update();
 </script>
 
 </body>
 </html>
-
-
